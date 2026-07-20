@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Search, MapPin, Upload, FileText, CreditCard, 
-  ShoppingBag, CheckCircle, RefreshCw, Star, Compass, Truck, Clock, LogOut, Menu, X, Users, Shield, Printer, User
+  ShoppingBag, CheckCircle, RefreshCw, Star, Compass, Truck, Clock, LogOut, Menu, X, Users, Shield, Printer, User, ArrowRight
 } from 'lucide-react';
 import api from '../utils/api.js';
 import Logo from '../components/Logo.jsx';
