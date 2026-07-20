@@ -43,8 +43,15 @@ export default function Register() {
         navigate('/admin');
       }
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.error || "Registration failed. Please check parameters.");
+      console.error("Registration error:", err);
+      const msg = err.response?.data?.error || err.response?.data?.message;
+      if (msg) {
+        setError(msg);
+      } else if (!err.response) {
+        setError("Unable to connect to backend server. Ensure backend is running on http://localhost:5000.");
+      } else {
+        setError("Registration failed. Please check parameters.");
+      }
     } finally {
       setLoading(false);
     }

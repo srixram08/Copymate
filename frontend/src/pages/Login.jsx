@@ -34,8 +34,15 @@ export default function Login() {
         navigate('/admin');
       }
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.error || "Login failed. Please check credentials.");
+      console.error("Login error:", err);
+      const msg = err.response?.data?.error || err.response?.data?.message;
+      if (msg) {
+        setError(msg);
+      } else if (!err.response) {
+        setError("Unable to connect to backend server. Ensure backend is running on http://localhost:5000.");
+      } else {
+        setError("Login failed. Please check credentials.");
+      }
     } finally {
       setLoading(false);
     }
