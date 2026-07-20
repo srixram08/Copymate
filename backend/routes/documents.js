@@ -21,9 +21,7 @@ try {
 
 // Multer Storage Configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, UPLOADS_DIR);
-  },
+  destination: (req, file, cb) => { cb(null, UPLOADS_DIR); },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
@@ -32,38 +30,36 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 25 * 1024 * 1024 }, // 25 MB max
+  limits: { fileSize: 25 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowedExts = ['.pdf', '.docx', '.doc', '.ppt', '.pptx', '.png', '.jpg', '.jpeg'];
     const ext = path.extname(file.originalname).toLowerCase();
     if (allowedExts.includes(ext)) {
       cb(null, true);
     } else {
-      cb(new Error("Unsupported file format. Upload PDF, DOCX, PPT or Images."));
+      cb(new Error('Unsupported file format. Upload PDF, DOCX, PPT or Images.'));
     }
   }
 });
 
 // Upload Document Endpoint
-router.post('/upload', auth, upload.single('document'), (req, res) => {
+router.post('/upload', auth, upload.single('document'), async (req, res) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: "No document file was uploaded." });
+      return res.status(400).json({ error: 'No document file was uploaded.' });
     }
 
-    const documents = getCollection('documents');
-    
-    // Simulate page count calculation (in a real app, libraries like pdf-parse would read this)
-    // Here we generate a realistic page count based on file size, default 3 pages
+    const documents = await getCollection('documents');
+
     let pageCount = Math.floor(Math.random() * 8) + 1;
     if (req.file.originalname.toLowerCase().endsWith('.pdf')) {
-      pageCount = Math.max(1, Math.floor(req.file.size / 150000)); // ~150KB per page mock
+      pageCount = Math.max(1, Math.floor(req.file.size / 150000));
     } else if (req.file.originalname.toLowerCase().endsWith('.pptx')) {
       pageCount = Math.max(2, Math.floor(req.file.size / 80000));
     }
 
     const newDoc = {
-      id: "doc_" + Math.random().toString(36).substr(2, 9),
+      id: 'doc_' + Math.random().toString(36).substr(2, 9),
       userId: req.user.id,
       filename: req.file.originalname,
       filePath: `/uploads/${req.file.filename}`,
@@ -72,22 +68,25 @@ router.post('/upload', auth, upload.single('document'), (req, res) => {
       uploadedAt: new Date().toISOString()
     };
 
-    documents.push(newDoc);
-    saveCollection('documents', documents);
+    const updatedDocs = [...documents, newDoc];
+    await saveCollection('documents', updatedDocs);
 
     res.status(201).json(newDoc);
-
   } catch (error) {
-    console.error("Document upload error:", error);
-    res.status(500).json({ error: error.message || "Failed to upload document." });
+    console.error('Document upload error:', error);
+    res.status(500).json({ error: error.message || 'Failed to upload document.' });
   }
 });
 
 // Get User's Documents
-router.get('/', auth, (req, res) => {
-  const documents = getCollection('documents');
-  const userDocs = documents.filter(d => d.userId === req.user.id);
-  res.json(userDocs);
+router.get('/', auth, async (req, res) => {
+  try {
+    const documents = await getCollection('documents');
+    const userDocs = documents.filter(d => d.userId === req.user.id);
+    res.json(userDocs);
+  } catch (error) {
+    res.status(500).json({ error: error.message || 'Failed to fetch documents.' });
+  }
 });
 
 export default router;

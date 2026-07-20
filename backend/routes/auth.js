@@ -5,21 +5,21 @@ import { getCollection, saveCollection } from '../config/db.js';
 import { auth } from '../middleware/auth.js';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || "copymate_super_secret_key_123";
+const JWT_SECRET = process.env.JWT_SECRET || 'copymate_super_secret_key_123';
 
 // User Registration
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role, phone } = req.body || {};
     if (!name || !email || !password || !role) {
-      return res.status(400).json({ error: "All fields (name, email, password, role) are required." });
+      return res.status(400).json({ error: 'All fields (name, email, password, role) are required.' });
     }
 
-    const users = getCollection('users');
+    const users = await getCollection('users');
     const userExists = users.some(u => u.email.toLowerCase() === email.toLowerCase());
 
     if (userExists) {
-      return res.status(400).json({ error: "User already exists with this email." });
+      return res.status(400).json({ error: 'User already exists with this email.' });
     }
 
     // Encrypt password
@@ -27,43 +27,36 @@ router.post('/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = {
-      id: "usr_" + Math.random().toString(36).substr(2, 9),
+      id: 'usr_' + Math.random().toString(36).substr(2, 9),
       name,
       email: email.toLowerCase(),
       password: hashedPassword,
-      role, // 'customer', 'shop_owner', 'delivery_agent', 'admin'
-      phone: phone || ""
+      role,
+      phone: phone || '',
+      points: 0
     };
 
-    users.push(newUser);
-    saveCollection('users', users);
+    const updatedUsers = [...users, newUser];
+    await saveCollection('users', updatedUsers);
 
     // If registered as shop owner, create a shop shell automatically
     if (role === 'shop_owner') {
-      const shops = getCollection('shops');
+      const shops = await getCollection('shops');
       const newShop = {
-        id: "shp_" + Math.random().toString(36).substr(2, 9),
+        id: 'shp_' + Math.random().toString(36).substr(2, 9),
         ownerId: newUser.id,
         name: `${name}'s Xerox Shop`,
-        address: "Provide Address",
-        phone: phone || "",
+        address: 'Provide Address',
+        phone: phone || '',
         lat: 12.9716 + (Math.random() - 0.5) * 0.02,
         lng: 77.5946 + (Math.random() - 0.5) * 0.02,
         rating: 5.0,
-        pricing: {
-          bw: 2.0,
-          color: 10.0,
-          singleSide: 0.0,
-          doubleSide: 0.0,
-          a4: 0.0,
-          a3: 5.0,
-          delivery: 30.0
-        },
-        status: "active",
-        description: "New print shop on CopyMate"
+        pricing: { bw: 2.0, color: 10.0, singleSide: 0.0, doubleSide: 0.0, a4: 0.0, a3: 5.0, delivery: 30.0 },
+        status: 'active',
+        description: 'New print shop on CopyMate'
       };
-      shops.push(newShop);
-      saveCollection('shops', shops);
+      const updatedShops = [...shops, newShop];
+      await saveCollection('shops', updatedShops);
     }
 
     // Generate JWT
@@ -85,8 +78,8 @@ router.post('/register', async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Registration error:", error);
-    res.status(500).json({ error: error.message || "Server error during registration." });
+    console.error('Registration error:', error);
+    res.status(500).json({ error: error.message || 'Server error during registration.' });
   }
 });
 
@@ -95,19 +88,19 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body || {};
     if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required." });
+      return res.status(400).json({ error: 'Email and password are required.' });
     }
 
-    const users = getCollection('users');
+    const users = await getCollection('users');
     const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
 
     if (!user) {
-      return res.status(400).json({ error: "Invalid email or password." });
+      return res.status(400).json({ error: 'Invalid email or password.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ error: "Invalid email or password." });
+      return res.status(400).json({ error: 'Invalid email or password.' });
     }
 
     // Generate JWT
@@ -120,7 +113,7 @@ router.post('/login', async (req, res) => {
     // Get shop ID if user is a shop owner
     let shopId = null;
     if (user.role === 'shop_owner') {
-      const shops = getCollection('shops');
+      const shops = await getCollection('shops');
       const shop = shops.find(s => s.ownerId === user.id);
       if (shop) shopId = shop.id;
     }
@@ -138,39 +131,41 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Login error:", error);
-    res.status(500).json({ error: error.message || "Server error during login." });
+    console.error('Login error:', error);
+    res.status(500).json({ error: error.message || 'Server error during login.' });
   }
 });
 
-// Get current user profile details
-router.get('/me', auth, (req, res) => {
-  const users = getCollection('users');
-  const user = users.find(u => u.id === req.user.id);
-  if (!user) return res.status(404).json({ error: "User not found." });
-
-  const { password, ...safeUser } = user;
-  res.json(safeUser);
+// Get current user profile
+router.get('/me', auth, async (req, res) => {
+  try {
+    const users = await getCollection('users');
+    const user = users.find(u => u.id === req.user.id);
+    if (!user) return res.status(404).json({ error: 'User not found.' });
+    const { password, ...safeUser } = user;
+    res.json(safeUser);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch profile.' });
+  }
 });
 
-// Update current user profile details
+// Update current user profile
 router.put('/me', auth, async (req, res) => {
   try {
-    const { name, email, phone, password } = req.body;
-    const users = getCollection('users');
+    const { name, email, phone, password } = req.body || {};
+    const users = await getCollection('users');
     const index = users.findIndex(u => u.id === req.user.id);
 
     if (index === -1) {
-      return res.status(404).json({ error: "User not found." });
+      return res.status(404).json({ error: 'User not found.' });
     }
 
-    const user = users[index];
+    const user = { ...users[index] };
 
-    // Verify email uniqueness if email changed
     if (email && email.toLowerCase() !== user.email.toLowerCase()) {
       const emailTaken = users.some(u => u.email.toLowerCase() === email.toLowerCase());
       if (emailTaken) {
-        return res.status(400).json({ error: "Email is already taken by another profile." });
+        return res.status(400).json({ error: 'Email is already taken by another profile.' });
       }
       user.email = email.toLowerCase();
     }
@@ -184,13 +179,13 @@ router.put('/me', auth, async (req, res) => {
     }
 
     users[index] = user;
-    saveCollection('users', users);
+    await saveCollection('users', users);
 
     const { password: _, ...safeUser } = user;
     res.json(safeUser);
   } catch (error) {
-    console.error("Profile update error:", error);
-    res.status(500).json({ error: "Failed to update profile details." });
+    console.error('Profile update error:', error);
+    res.status(500).json({ error: 'Failed to update profile details.' });
   }
 });
 
