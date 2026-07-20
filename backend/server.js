@@ -49,8 +49,13 @@ app.get('/api/health', (req, res) => {
 
 const HOST = process.env.HOST || '0.0.0.0';
 
-// Start Server
-app.listen(PORT, HOST, () => {
-  const displayHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
-  console.log(`CopyMate backend server is running on http://${displayHost}:${PORT}`);
-});
+// Export Express app for Vercel Serverless deployments
+export default app;
+
+// Start Server locally
+if (!process.env.VERCEL) {
+  app.listen(PORT, HOST, () => {
+    const displayHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
+    console.log(`CopyMate backend server is running on http://${displayHost}:${PORT}`);
+  });
+}
