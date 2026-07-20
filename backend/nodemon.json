@@ -1,0 +1,8 @@
+{
+  "ignore": [
+    "data/*",
+    "uploads/*",
+    "*.json"
+  ],
+  "ext": "js,mjs,cjs"
+}

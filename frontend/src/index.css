@@ -1,0 +1,173 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    @apply bg-slate-950 text-slate-100 antialiased overflow-x-hidden;
+  }
+}
+
+/* New Gradient Scheme Variables */
+:root {
+  --color-logo-blue: #2563EB;
+  --color-logo-purple: #7C3AED;
+  --color-logo-pink: #DB2777;
+}
+
+/* Glassmorphism Styles with Neon Glow Backlighting */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.glass-card {
+  background: rgba(30, 41, 59, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(124, 58, 237, 0.2);
+  box-shadow: 0 0 25px rgba(124, 58, 237, 0.1);
+}
+
+/* 3D Visual Effects */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Pure CSS 3D Tilt Card */
+.card-3d {
+  transform: perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px);
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.5s ease, border-color 0.5s ease;
+}
+
+.card-3d:hover {
+  transform: perspective(1000px) rotateX(6deg) rotateY(-4deg) translateZ(15px);
+  border-color: rgba(219, 39, 119, 0.3);
+  box-shadow: 
+    -10px 15px 30px rgba(0, 0, 0, 0.5), 
+    0 0 30px rgba(124, 58, 237, 0.15);
+}
+
+/* 3D Button Push effect */
+.btn-3d {
+  position: relative;
+  transition: all 0.1s ease;
+  box-shadow: 0 4px 0 #1e1b4b; /* dark indigo 3d lip */
+}
+
+.btn-3d:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 #1e1b4b;
+}
+
+/* Smooth Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.95);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, var(--color-logo-blue), var(--color-logo-pink));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #3b82f6, #ec4899);
+}
+
+/* Custom Stepper Tracker Colors */
+.status-step-completed {
+  @apply text-pink-500 bg-pink-500/10 border-pink-500/30;
+}
+
+.status-step-active {
+  @apply text-blue-400 bg-blue-400/10 border-blue-400/30;
+  animation: pulseGlow 2.5s infinite ease-in-out;
+}
+
+.status-step-pending {
+  @apply text-slate-600 bg-slate-800/20 border-slate-700/20;
+}
+
+/* Keyframe Animations */
+
+/* Heartbeat animation for Vector Logo */
+@keyframes logoHeartbeat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14% {
+    transform: scale(1.07);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.07);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+.logo-heart-path {
+  transform-origin: 50% 50%;
+  animation: logoHeartbeat 3.2s infinite ease-in-out;
+}
+
+/* Floating animation for Background Orbs */
+@keyframes floatOrb {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-25px) scale(1.08);
+  }
+}
+
+.animate-float-orb-1 {
+  animation: floatOrb 10s infinite ease-in-out;
+}
+
+.animate-float-orb-2 {
+  animation: floatOrb 14s infinite ease-in-out;
+  animation-delay: 2.5s;
+}
+
+.animate-float-orb-3 {
+  animation: floatOrb 18s infinite ease-in-out;
+  animation-delay: 5s;
+}
+
+/* Neon Pulse glow */
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(219, 39, 119, 0.45);
+  }
+}
+
+.pulse-glow-pink {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
