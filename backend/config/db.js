@@ -355,13 +355,16 @@ async function syncCollectionToMongo(collectionName, items) {
   if (!Model) return;
 
   try {
-    const bulkOps = items.map(item => ({
-      updateOne: {
-        filter: { id: item.id },
-        update: { $set: item },
-        upsert: true
-      }
-    }));
+    const bulkOps = items.map(item => {
+      const { _id, ...cleanItem } = item;
+      return {
+        updateOne: {
+          filter: { id: item.id },
+          update: { $set: cleanItem },
+          upsert: true
+        }
+      };
+    });
     if (bulkOps.length > 0) {
       await Model.bulkWrite(bulkOps);
     }

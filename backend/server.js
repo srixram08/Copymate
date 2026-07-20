@@ -31,6 +31,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Body normalization middleware
+app.use((req, res, next) => {
+  if (typeof req.body === 'string') {
+    try { req.body = JSON.parse(req.body); } catch (e) {}
+  }
+  req.body = req.body || {};
+  next();
+});
+
 // Serve uploaded documents statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -45,6 +54,12 @@ app.use(['/api/admin', '/admin'], adminRouter);
 // Health check endpoint
 app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: "healthy", timestamp: new Date().toISOString() });
+});
+
+// Global Express Error Handler
+app.use((err, req, res, next) => {
+  console.error("Unhandled Server Error:", err);
+  res.status(500).json({ error: err.message || "Internal server error" });
 });
 
 const HOST = process.env.HOST || '0.0.0.0';

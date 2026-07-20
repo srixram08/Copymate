@@ -10,7 +10,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "copymate_super_secret_key_123";
 // User Registration
 router.post('/register', async (req, res) => {
   try {
-    const { name, email, password, role, phone } = req.body;
+    const { name, email, password, role, phone } = req.body || {};
     if (!name || !email || !password || !role) {
       return res.status(400).json({ error: "All fields (name, email, password, role) are required." });
     }
@@ -93,7 +93,7 @@ router.post('/register', async (req, res) => {
 // User Login
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password } = req.body || {};
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required." });
     }
@@ -138,8 +138,8 @@ router.post('/login', async (req, res) => {
     });
 
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Server error during login." });
+    console.error("Login error:", error);
+    res.status(500).json({ error: error.message || "Server error during login." });
   }
 });
 
