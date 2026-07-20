@@ -3,6 +3,7 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
+import fs from 'fs';
 
 // Import routers
 import authRouter from './routes/auth.js';
@@ -27,9 +28,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Middleware
-app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Body normalization middleware
 app.use((req, res, next) => {
@@ -41,25 +46,36 @@ app.use((req, res, next) => {
 });
 
 // Serve uploaded documents statically
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+const uploadsDir = process.env.VERCEL ? '/tmp' : path.join(__dirname, 'uploads');
+app.use('/uploads', express.static(uploadsDir));
 
-// Routes
-app.use(['/api/auth', '/auth'], authRouter);
-app.use(['/api/shops', '/shops'], shopsRouter);
-app.use(['/api/documents', '/documents'], documentsRouter);
-app.use(['/api/orders', '/orders'], ordersRouter);
-app.use(['/api/delivery', '/delivery'], deliveryRouter);
-app.use(['/api/admin', '/admin'], adminRouter);
+// API Routes
+app.use('/api/auth', authRouter);
+app.use('/api/shops', shopsRouter);
+app.use('/api/documents', documentsRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/delivery', deliveryRouter);
+app.use('/api/admin', adminRouter);
 
 // Health check endpoint
-app.get(['/api/health', '/health'], (req, res) => {
-  res.json({ status: "healthy", timestamp: new Date().toISOString() });
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
+
+// ─── Serve Frontend Static Files (for Render single-service deployment) ──────
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+if (fs.existsSync(frontendDist)) {
+  app.use(express.static(frontendDist));
+  // React Router: serve index.html for all non-API routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(frontendDist, 'index.html'));
+  });
+}
 
 // Global Express Error Handler
 app.use((err, req, res, next) => {
-  console.error("Unhandled Server Error:", err);
-  res.status(500).json({ error: err.message || "Internal server error" });
+  console.error('Unhandled Server Error:', err);
+  res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
 const HOST = process.env.HOST || '0.0.0.0';
@@ -67,10 +83,10 @@ const HOST = process.env.HOST || '0.0.0.0';
 // Export Express app for Vercel Serverless deployments
 export default app;
 
-// Start Server locally
+// Start Server (local + Render)
 if (!process.env.VERCEL) {
   app.listen(PORT, HOST, () => {
     const displayHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
-    console.log(`CopyMate backend server is running on http://${displayHost}:${PORT}`);
+    console.log(`✅ CopyMate server running on http://${displayHost}:${PORT}`);
   });
 }
