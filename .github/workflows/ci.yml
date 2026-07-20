@@ -1,0 +1,28 @@
+name: CopyMate CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Backend Dependencies
+        run: npm install --prefix backend
+
+      - name: Install Frontend Dependencies
+        run: npm install --prefix frontend
+
+      - name: Build Frontend
+        run: npm run build --prefix frontend
