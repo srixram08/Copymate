@@ -13,7 +13,6 @@ const getBaseURL = () => {
 
 const api = axios.create({
   baseURL: getBaseURL(),
-  timeout: 10000,
 });
 
 // Auto-inject JWT token to all requests if present in localStorage
