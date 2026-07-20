@@ -1,12 +1,19 @@
 import axios from 'axios';
 
-const rawHost = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-const host = (rawHost === '0.0.0.0' || !rawHost) ? 'localhost' : rawHost;
-const protocol = typeof window !== 'undefined' ? window.location.protocol : 'http:';
-const defaultBaseURL = `${protocol}//${host}:5000/api`;
+const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== '0.0.0.0') {
+      return `${window.location.protocol}//${hostname}:5000/api`;
+    }
+  }
+  return 'http://localhost:5000/api';
+};
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || defaultBaseURL,
+  baseURL: getBaseURL(),
+  timeout: 10000,
 });
 
 // Auto-inject JWT token to all requests if present in localStorage
