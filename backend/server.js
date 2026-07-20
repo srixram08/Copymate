@@ -35,15 +35,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Routes
-app.use('/api/auth', authRouter);
-app.use('/api/shops', shopsRouter);
-app.use('/api/documents', documentsRouter);
-app.use('/api/orders', ordersRouter);
-app.use('/api/delivery', deliveryRouter);
-app.use('/api/admin', adminRouter);
+app.use(['/api/auth', '/auth'], authRouter);
+app.use(['/api/shops', '/shops'], shopsRouter);
+app.use(['/api/documents', '/documents'], documentsRouter);
+app.use(['/api/orders', '/orders'], ordersRouter);
+app.use(['/api/delivery', '/delivery'], deliveryRouter);
+app.use(['/api/admin', '/admin'], adminRouter);
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({ status: "healthy", timestamp: new Date().toISOString() });
 });
 
