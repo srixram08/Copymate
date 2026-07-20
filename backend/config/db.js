@@ -392,17 +392,21 @@ export const connectDB = async () => {
 
     // Check collections and seed / load from MongoDB
     for (const [colName, Model] of Object.entries(collectionsMap)) {
-      const count = await Model.countDocuments();
-      if (count === 0 && initialDB[colName] && initialDB[colName].length > 0) {
-        console.log(`🌱 Seeding initial '${colName}' data into MongoDB...`);
-        const itemsToSeed = localData[colName] || initialDB[colName];
-        await Model.insertMany(itemsToSeed);
-      }
+      try {
+        const count = await Model.countDocuments();
+        if (count === 0 && initialDB[colName] && initialDB[colName].length > 0) {
+          console.log(`🌱 Seeding initial '${colName}' data into MongoDB...`);
+          const itemsToSeed = localData[colName] || initialDB[colName];
+          await Model.insertMany(itemsToSeed, { ordered: false });
+        }
 
-      // Populate local cache from MongoDB
-      const docs = await Model.find({}, { _id: 0, __v: 0 }).lean();
-      if (docs && docs.length > 0) {
-        localData[colName] = docs;
+        // Populate local cache from MongoDB
+        const docs = await Model.find({}, { _id: 0, __v: 0 }).lean();
+        if (docs && docs.length > 0) {
+          localData[colName] = docs;
+        }
+      } catch (err) {
+        console.warn(`[MongoDB Warning] Error loading collection '${colName}':`, err.message);
       }
     }
 
