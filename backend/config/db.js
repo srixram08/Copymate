@@ -243,8 +243,13 @@ export const connectDB = async () => {
 
   try {
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 8000,
-      socketTimeoutMS: 45000,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 30000,
+      connectTimeoutMS: 10000,
+      maxPoolSize: 10,
+      minPoolSize: 2,
+      maxIdleTimeMS: 60000,
+      heartbeatFrequencyMS: 10000,
     });
     mongoConnected = true;
     mongoConnecting = false;

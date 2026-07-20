@@ -23,7 +23,7 @@ router.post('/register', async (req, res) => {
     }
 
     // Encrypt password
-    const salt = await bcrypt.genSalt(10);
+    const salt = await bcrypt.genSalt(8);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     const newUser = {
@@ -174,7 +174,7 @@ router.put('/me', auth, async (req, res) => {
     if (phone !== undefined) user.phone = phone;
 
     if (password) {
-      const salt = await bcrypt.genSalt(10);
+      const salt = await bcrypt.genSalt(8);
       user.password = await bcrypt.hash(password, salt);
     }
 

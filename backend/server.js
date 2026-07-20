@@ -62,6 +62,18 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
+// Keep-alive: prevent Render free tier from sleeping (ping every 14 min)
+if (process.env.NODE_ENV === 'production' && process.env.RENDER_EXTERNAL_URL) {
+  const PING_URL = process.env.RENDER_EXTERNAL_URL + '/api/health';
+  setInterval(async () => {
+    try {
+      const https = await import('https');
+      https.get(PING_URL, () => {}).on('error', () => {});
+    } catch {}
+  }, 14 * 60 * 1000); // every 14 minutes
+  console.log('🔄 Keep-alive ping enabled:', PING_URL);
+}
+
 // ─── Serve Frontend Static Files (for Render single-service deployment) ──────
 const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
 if (fs.existsSync(frontendDist)) {
