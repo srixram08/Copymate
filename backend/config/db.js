@@ -22,8 +22,12 @@ const DB_FILE = path.join(__dirname, '..', 'data', 'db.json');
 
 // Ensure data folder exists
 const dataDir = path.dirname(DB_FILE);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+try {
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+} catch (e) {
+  // Read-only filesystem (e.g. Vercel Serverless)
 }
 
 // Mongoose Schemas & Models
@@ -307,8 +311,12 @@ const initialDB = {
 };
 
 // Initialize local DB file if not present
-if (!fs.existsSync(DB_FILE)) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(initialDB, null, 2), 'utf-8');
+try {
+  if (!fs.existsSync(DB_FILE)) {
+    fs.writeFileSync(DB_FILE, JSON.stringify(initialDB, null, 2), 'utf-8');
+  }
+} catch (e) {
+  // Read-only filesystem on serverless platforms
 }
 
 let cachedDB = null;

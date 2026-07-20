@@ -44,13 +44,16 @@ export default function Register() {
       }
     } catch (err) {
       console.error("Registration error:", err);
-      const msg = err.response?.data?.error || err.response?.data?.message;
+      let msg = err.response?.data?.error || err.response?.data?.message;
+      if (typeof msg === 'object' && msg !== null) {
+        msg = msg.message || JSON.stringify(msg);
+      }
       if (msg) {
-        setError(msg);
+        setError(String(msg));
       } else if (!err.response) {
-        setError("Unable to connect to backend server. Ensure backend is running on http://localhost:5000.");
+        setError("Unable to connect to backend server. Ensure backend is running.");
       } else {
-        setError("Registration failed. Please check parameters.");
+        setError("Registration failed. Server error occurred.");
       }
     } finally {
       setLoading(false);
